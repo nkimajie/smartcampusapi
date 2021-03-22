@@ -156,7 +156,7 @@ module.exports = (app) => {
     // ----------- generate access token ------------------
 
     function generateAccessToken(user){
-        return jwt.sign({user}, process.env.JWT_SECRET_TOKEN, {expiresIn: '300'}); 
+        return jwt.sign({user}, process.env.JWT_SECRET_TOKEN, {expiresIn: '999s'}); 
     }
 
 }

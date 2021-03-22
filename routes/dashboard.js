@@ -8,23 +8,12 @@ const router = express.Router();
 router.get('/', tokenCheck.verifyToken, (req, res) => {
     jwt.verify(req.token, process.env.JWT_SECRET_TOKEN, async(err, results) => {
         if(err){
-            res.status(403)
+            res.sendStatus(403)
         }
         else{
-            const user = await Users.findOne({where: {id}})
-            let data = {
-                'id' : user.id,
-                'name' : user.name,
-                'email' : user.email,
-                'uuid' : user.uuid,
-                'reg_no' : user.reg_no,
-                'school_id' : user.school_id, 
-                'level_id' : user.level_id,
-                'semester_id': user.semester_id
-            }
-            res.json({
+            res.status(200).json({
                 message: 'You are in the dashboard',
-                data
+                status: 'success'
             })
         }
     })
@@ -32,8 +21,22 @@ router.get('/', tokenCheck.verifyToken, (req, res) => {
 
 // ----------------------------------------------
 
-router.get('/getUser', (req, res) => {
-    
-})
+router.get('/getUser', tokenCheck.verifyToken, (req, res) => {
+    jwt.verify(req.token, process.env.JWT_SECRET_TOKEN, async(err, results) => {
+
+        if(err){
+            res.status(403);
+        }
+        else{
+            const user = await Users.findOne({where: {id: results.user.id}})
+            res.json({
+                message: 'success',
+                user
+            })
+        }
+    })
+});
+
+// -----------------------------------------------------
 
 module.exports = router ;
