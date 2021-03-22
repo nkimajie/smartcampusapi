@@ -14,10 +14,8 @@ module.exports = (app) => {
     const Users = require('../models/Users');
     const mailer = require('../helpers/mailer');
     const randomstring = require("randomstring");
-
-    app.post('/login', (req, res, next) => {
-
-    });
+    const moment = require('moment'); // require
+     
 
     // ---------------------------------------------
 
@@ -44,7 +42,8 @@ module.exports = (app) => {
 
         const {value, error} = schema.validate(req.body);
         if(error && error.details){
-            return res.status(400).json({message: error.details[0].message});
+            // return res.status(406).json({message: error.details[0].message});
+            return res.json({message: error.message});
         }
         else{
             const findUser = await Users.findOne({ where: { email: req.body.email } });
@@ -98,11 +97,66 @@ module.exports = (app) => {
 
     // ---------------------------------------------------------------------------------------------
 
-    app.get('/login', async (req, res) => {
-        return res.json({
-            message: 'Hello',
-            status: 'success'
-        })
+    app.post('/login', async (req, res, next) => {
+        const schema = Joi.object({ 
+            email: Joi.string().trim().min(6).required().email(),
+            password: Joi.string().min(5).required(),  
+        });
+
+        const {value, error} = schema.validate(req.body);
+        if(error && error.details){
+            // return res.status(406).json({message: error.details[0].message});
+            return res.json({message: error.message});
+        }
+        else{
+            const user = await Users.findOne({ where: { email: req.body.email } });
+            if (!user) {
+                return res.json({
+                    message: 'Incorrect Email and/or Password',
+                    status: 'error'
+                }) 
+            }
+            try {
+                const checkPassword = await bcrypt.compare(req.body.password, user.password);
+                if(checkPassword){
+                    //set session
+                    let userData = {
+                        'id' : user.id,
+                        'name' : user.name,
+                        'email' : user.email,
+                        'uuid' : user.uuid,
+                        'reg_no' : user.reg_no,
+                        'school_id' : user.school_id, 
+                        'level_id' : user.level_id,
+                        'semester_id': user.semester_id
+                    }
+                    const accessToken = generateAccessToken(userData);
+                    // var expires = moment().add(5, 'minutes').format();
+                    // console.log(expires);
+                    return res.json({
+                        data: userData,
+                        token: accessToken,
+                        status: 'success',
+                        message: 'Login successful'
+                    });
+                }
+                else{
+                    return res.json({
+                        message: 'Incorrect Email and/or Password',
+                        status: 'error'
+                    });
+                }
+            }
+            catch{
+                return res.status(500);
+            }
+        }
     });
+
+    // ----------- generate access token ------------------
+
+    function generateAccessToken(user){
+        return jwt.sign({user}, process.env.JWT_SECRET_TOKEN, {expiresIn: '300'}); 
+    }
 
 }

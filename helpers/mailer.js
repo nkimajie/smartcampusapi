@@ -22,16 +22,13 @@ async function registerMail(userMail, userName, userRegNo) {
 
     transporter.sendMail(mailOptions, function (error, data) {
         if(error){
-            return res.status(501).json({
-                message: error
-            });
+            return false
         }
         else{
-            return res.status(501).json({
-                message: 'Mail Sent Successfully'
-            }); 
+            return true
         }
     });  
 };
+
 
 module.exports = {registerMail}
