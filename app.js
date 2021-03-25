@@ -35,8 +35,10 @@ app.use('/assets', express.static('assets'));
 
 // define controller
 const auth = require('./controllers/auth');
+const school = require('./controllers/school');
 
 auth(app);
+school(app);
 
 app.listen(port, () => { 
     console.log(`App started at http://localhost:${port}`)
